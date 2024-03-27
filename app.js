@@ -1,10 +1,14 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const Token = require('./models/Tokens');
 const fs = require('fs');
 
 const app = express();
 const port = 3003;
 
 app.use(express.json());
+
+mongoose.connect('mongodb://localhost:27017/Tokens');
 
 const getContractABI = () => {
     return new Promise((resolve, reject) => {
@@ -20,7 +24,7 @@ const getContractABI = () => {
             }
         });
     });
-}
+};
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -52,6 +56,32 @@ app.get('/contract-abi', (req, res) => {
         })
         .catch((error) => {
             console.error('Error:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        });
+});
+
+app.post('/mint', async (req, res) => {
+    const { address, amount } = req.body;
+    const token = new Token({ address, amount });
+    token
+        .save()
+        .then(() => {
+            res.json({ success: true, message: 'Tokens minted successfully' });
+        })
+        .catch((error) => {
+            console.error('Error minting tokens:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        });
+});
+
+app.get('/tokens', async (req, res) => {
+    Token.find()
+        .sort({ createdAt: -1 })
+        .then((tokens) => {
+            res.json(tokens);
+        })
+        .catch((error) => {
+            console.error('Error retrieving tokens:', error);
             res.status(500).json({ error: 'Internal Server Error' });
         });
 });
