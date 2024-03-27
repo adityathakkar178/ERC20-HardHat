@@ -74,11 +74,24 @@ app.post('/mint', async (req, res) => {
         });
 });
 
-app.get('/tokens', async (req, res) => {
-    Token.find()
-        .sort({ createdAt: -1 })
+app.get('/tokens', (req, res) => {
+    let tokensPromise;
+    const sortBy = req.query.sortBy;
+    if (sortBy === 'balance') {
+        tokensPromise = Token.find().sort({ amount: -1 });
+    } else {
+        tokensPromise = Token.find().sort({ createdAt: -1 });
+    }
+
+    tokensPromise
         .then((tokens) => {
-            res.json(tokens);
+            const token = tokens.map((token) => ({
+                _id: token._id,
+                address: token.address,
+                amount: token.amount,
+                createdAt: token.createdAt,
+            }));
+            res.json(token);
         })
         .catch((error) => {
             console.error('Error retrieving tokens:', error);
