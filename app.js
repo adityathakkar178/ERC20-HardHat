@@ -77,7 +77,7 @@ app.post('/mint', async (req, res) => {
 app.get('/tokens', (req, res) => {
     let tokensPromise;
     const sortBy = req.query.sortBy;
-    if (sortBy === 'balance') {
+    if (sortBy === 'amount') {
         tokensPromise = Token.find().sort({ amount: -1 });
     } else {
         tokensPromise = Token.find().sort({ createdAt: -1 });
